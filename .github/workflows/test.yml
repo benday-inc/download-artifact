@@ -1,0 +1,70 @@
+name: 'build-test'
+on: # rebuild any PRs and main branch changes
+  workflow_dispatch:
+  pull_request:
+    branches:
+  push:
+    branches:
+      - main
+      - master
+      - 'releases/*'
+env:
+  ACTIONS_RUNNER_DEBUG: true
+  # MYGITHUBTOKEN: '${{ github.token }}'
+  # MYGITHUBTOKEN: '${{ secrets.GITHUB_TOKEN }}'
+  # MYGITHUBTOKEN: '${{ env.ACTIONS_RUNTIME_TOKEN }}'  
+  MYGITHUBTOKEN: '${{ secrets.PAT_WITH_GOOD_PERMISSIONS }}'  
+  DEBUG: 'axios'
+
+jobs:
+  build: # make sure build/ci work properly
+    runs-on: ubuntu-latest
+    steps:
+      - name: print environment vars
+        run: env
+      - uses: actions/checkout@v2
+      - run: |
+          npm install
+      - name: npm run all
+        env:
+          token: '${{ env.ACTIONS_RUNTIME_TOKEN }}'
+        run: |
+          npm run all
+  test: # make sure the action works on a clean machine without building
+    runs-on: ubuntu-latest
+    steps:
+      - name: print environment vars
+        run: env
+      - uses: actions/checkout@v2
+      - name: run an ls -l
+        run: ls -lR
+        working-directory: '${{ github.workspace }}'
+      - uses: ./
+        with:
+          # token: '${{ github.token }}'
+          token: '${{ env.MYGITHUBTOKEN }}'
+          repository_owner: 'benday'
+          repository_name: 'actionsdemo'
+          workflow_name: 'build'
+          branch_name: 'master'
+          download_path: '${{ github.workspace }}/temp'
+          download_filename: 'actionsdemo.zip'
+  automerge:
+    name: Merge pull request
+    runs-on: [ubuntu-latest]
+    needs: [build, test]
+    if: github.base_ref == 'main' && github.actor == 'dependabot[bot]'
+    steps:
+      - name: Merge
+        uses: actions/github-script@0.2.0
+        with:
+          script: |
+            github.pullRequests.merge({
+              owner: context.payload.repository.owner.login,
+              repo: context.payload.repository.name,
+              pull_number: context.payload.pull_request.number
+            })
+          github-token: ${{github.token}}
+          
+
+        
