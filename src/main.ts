@@ -7,7 +7,6 @@ import path from 'path'
 import {Workflow} from './workflow'
 import {WorkflowResponse} from './workflow-response'
 import {WorkflowRun} from './workflow-run'
-import {WorkflowRunsResponse} from './workflow-runs-response'
 
 function writeDebug(message: string): void {
   // Console.debug(message)
@@ -41,7 +40,7 @@ async function run(): Promise<void> {
     const repositoryOwner = getInputValue('repository_owner')
     const repositoryName = getInputValue('repository_name')
     const workflowName = getInputValue('workflow_name')
-    const branchName = getInputValue('branch_name')
+    const runId = getInputValue('run_id')
     const downloadPath = getInputValue('download_path')
     const downloadFilename = getInputValue('download_filename')
     const token = getInputValue('token')
@@ -56,11 +55,7 @@ async function run(): Promise<void> {
       writeDebug('workflow instance is null')
     }
 
-    const latestRun = await getLatestRunForWorkflow(
-      githubClient,
-      workflow,
-      branchName
-    )
+    const latestRun = await getWorkflowRunByRunId(githubClient, workflow, runId)
     const artifact = await getArtifactForWorkflowRun(githubClient, latestRun)
 
     writeDebug('finished calling APIs')
@@ -183,36 +178,37 @@ async function getArtifactForWorkflowRun(
   }
 }
 
-async function getLatestRunForWorkflow(
+async function getWorkflowRunByRunId(
   client: AxiosInstance,
   forWorkflow: Workflow,
-  branchName: string
+  runId: string
 ): Promise<WorkflowRun> {
   if (!forWorkflow || forWorkflow === null) {
-    core.setFailed('getLatestRunForWorkflow was passed a null workflow')
-    throw new Error('getLatestRunForWorkflow was passed a null workflow')
+    core.setFailed('getWorkflowRunByRunId was passed a null workflow')
+    throw new Error('getWorkflowRunByRunId was passed a null workflow')
   }
 
-  writeDebug(`Getting runs for workflow ${forWorkflow.name}...`)
+  writeDebug(
+    `Getting run for workflow ${forWorkflow.name} and run id ${runId}...`
+  )
 
-  const url = `actions/workflows/${forWorkflow.id}/runs`
+  const url = `actions/runs/${runId}`
 
-  const temp = client.get<WorkflowRunsResponse>(url, {
-    params: {status: 'success', branch: branchName}
+  writeDebug(`getWorkflowRunByRunId(): calling url ${url}`)
+
+  const temp = client.get<WorkflowRun>(url, {
+    params: {status: 'success'}
   })
 
   const response = await temp
 
   if (!response || response === null || response.data === null) {
     core.setFailed(
-      'Call to get workflow runs failed with undefined or null result'
+      `Call to get workflow run id ${runId} failed with undefined or null result`
     )
     return null
-  } else if (response.data.total_count === 0) {
-    core.setFailed(`No successful workflow runs for branch ${branchName} found`)
-    return null
   } else {
-    const match = response.data.workflow_runs[0]
+    const match = response.data
 
     writeDebug(`Found workflow run id ${match.id}.`)
 
