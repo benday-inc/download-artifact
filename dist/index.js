@@ -836,6 +836,13 @@ function getWorkflowRunByRunId(client, forWorkflow, runId) {
         else {
             const match = response.data;
             writeDebug(`Found workflow run id ${match.id}.`);
+            if (match.workflow_id !== forWorkflow.id) {
+                core.setFailed(`Found workflow run id ${runId} but it does not belong to workflow ${forWorkflow.name}. Run workflow id is ${match.workflow_id}. Expected workflow id ${forWorkflow.id}.`);
+                return null;
+            }
+            else {
+                writeDebug(`Workflow run matches expected parent workflow id.`);
+            }
             return match;
         }
     });

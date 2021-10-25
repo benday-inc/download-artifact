@@ -55,8 +55,12 @@ async function run(): Promise<void> {
       writeDebug('workflow instance is null')
     }
 
-    const latestRun = await getWorkflowRunByRunId(githubClient, workflow, runId)
-    const artifact = await getArtifactForWorkflowRun(githubClient, latestRun)
+    const workflowRun = await getWorkflowRunByRunId(
+      githubClient,
+      workflow,
+      runId
+    )
+    const artifact = await getArtifactForWorkflowRun(githubClient, workflowRun)
 
     writeDebug('finished calling APIs')
 
@@ -75,7 +79,7 @@ async function run(): Promise<void> {
       core.error(err)
       core.setFailed(err)
     } else {
-      core.error('boom?')
+      core.error('Someting went wrong.')
       core.error(JSON.stringify(error))
       core.error(JSON.stringify(error))
       core.setFailed(JSON.stringify(error))
@@ -211,6 +215,15 @@ async function getWorkflowRunByRunId(
     const match = response.data
 
     writeDebug(`Found workflow run id ${match.id}.`)
+
+    if (match.workflow_id !== forWorkflow.id) {
+      core.setFailed(
+        `Found workflow run id ${runId} but it does not belong to workflow ${forWorkflow.name}. Run workflow id is ${match.workflow_id}. Expected workflow id ${forWorkflow.id}.`
+      )
+      return null
+    } else {
+      writeDebug(`Workflow run matches expected parent workflow id.`)
+    }
 
     return match
   }
