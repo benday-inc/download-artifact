@@ -1,23 +1,27 @@
-![build-test](https://github.com/benday-inc/download-latest-artifact/workflows/build-test/badge.svg)
+![build-test](https://github.com/benday-inc/download-artifact/workflows/build-test/badge.svg)
 
-# Download an artifact from a github workflow
+# Download specific artifact from a github workflow
 
-This action helps you to download an artifact from another github workflow.  The out-of-the-box download artifact action from github only allows you to download artifacts from a job in the current workflow.  This action gets around this restriction.  The workflow can even be hosted in another github account.  
+This action helps you to download a specific version of an artifact from another github workflow.  Each execution of a GitHub Actions pipeline is assigned a run id.  Unfortunately, the run id is not shown in the user interface but it's available in the URL for the Actions run. 
 
-The action downloads the latest artifact from the last successful workflow run executed against the provided branch.  Failed workflow runs are ignored.  Workflow runs against branches other than the supplied branch are ignored.  
+![How to find the run id](run-id-screenshot.png)
+
+The action downloads the artifact from the supplied run id.  
+
+NOTE: if you simply want to download the latest artifact, use the [Download Latest Artifact action](https://github.com/marketplace/actions/download-latest-artifact-from-a-github-workflow) instead.
 
 ## Usage
 
 To download an artifact from a workflow:  
 ```yaml
 - name: download workflow artifact
-  uses: benday-inc/download-latest-artifact@main
+  uses: benday-inc/download-artifact@main
   with:
      token: ${{ secrets.TOKEN_WITH_PERMISSIONS }}'
      repository_owner: 'benday'
      repository_name: 'actionsdemo'
      workflow_name: 'my-workflow'
-     branch_name: 'master'
+     run_id: '4321235'
      download_path: '${{ github.workspace }}/temp'
      download_filename: 'actionsdemo-artifact.zip'
 ```
@@ -33,7 +37,7 @@ To download an artifact from a workflow:
 - `repository_owner` - name of the repository account owner
 - `repository_name` - name of the repository
 - `workflow_name` - name of the workflow that created the artifact
-- `branch_name` - name of the branch that the workflow should run off of
+- `run_id` - id of the pipeline run that you want to download an artifact from
 - `download_path` - location on the agent to download the artifact to.
 - `download_filename` - download the artifact file as this filename
 
