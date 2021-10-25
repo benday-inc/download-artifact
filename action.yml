@@ -1,5 +1,5 @@
-name: 'Download latest artifact from a github workflow'
-description: 'Download the latest artifact from a successful github workflow (aka. build) for a given branch'
+name: 'Download artifact from a github workflow run'
+description: 'Download an artifact from GitHub workflow (aka. build) for a specific run id'
 author: 'Benjamin Day Consulting, Inc.'
 inputs:
   token:
@@ -18,9 +18,9 @@ inputs:
     required: true
     description: 'name of the workflow (aka. build) that created the artifact'
     default: ''
-  branch_name:
+  run_id:
     required: true
-    description: 'name of the branch that workflow should have run from'
+    description: 'the run id value that you want to download the artifact from'
     default: ''
   download_path:
     required: true
