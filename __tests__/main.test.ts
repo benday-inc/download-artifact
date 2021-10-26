@@ -10,7 +10,7 @@ test('make call to api', () => {
 
   const pathToTempDir = path.join(
     os.homedir(),
-    'actions-download-latest-artifact'
+    'actions-download-artifact'
   )
 
   if (!fs.existsSync(pathToTempDir)) {
