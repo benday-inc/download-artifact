@@ -64,3 +64,63 @@ test('download build-output artifact from a run id', () => {
 
   console.log(`file was downloaded to ${expectedFileDownloadPath}...`)
 })
+
+test('download build-output-api-project artifact from a run id', () => {
+  const now = Date.now().toString()
+
+  const pathToTempDir = path.join(os.homedir(), 'actions-download-artifact')
+
+  if (!fs.existsSync(pathToTempDir)) {
+    fs.mkdirSync(pathToTempDir)
+  }
+
+  var pathToTempDirForThisRun = path.join(pathToTempDir, now)
+  if (!fs.existsSync(pathToTempDirForThisRun)) {
+    fs.mkdirSync(pathToTempDirForThisRun)
+  }
+
+  var expectedOutputFilename = 'actionsdemo-build-output-api-project.zip'
+
+  console.log(`download dir: ${pathToTempDirForThisRun}`)
+
+  let token = process.env['MYGITHUBTOKEN']
+
+  expect(token).toBeDefined()
+  expect(token).not.toBeNull()
+  expect(token.length).toBeGreaterThan(0)
+
+  console.log('github token: ' + token)
+
+  process.env['INPUT_TOKEN'] = token
+  process.env['INPUT_REPOSITORY_OWNER'] = 'benday'
+  process.env['INPUT_REPOSITORY_NAME'] = 'actionsdemo'
+  process.env['INPUT_ARTIFACT_NAME'] = 'build-output-api-project'
+  process.env['INPUT_WORKFLOW_NAME'] = 'build'
+  process.env['INPUT_RUN_ID'] = '1417378960'
+  process.env['INPUT_DOWNLOAD_PATH'] = pathToTempDirForThisRun
+  process.env['INPUT_DOWNLOAD_FILENAME'] = expectedOutputFilename
+
+  process.env['ACTIONS_RUNNER_DEBUG'] = 'true'
+  process.env['RUNNER_DEBUG'] = '1'
+
+  const systemUnderTest = path.join(__dirname, '..', 'lib', 'main.js')
+  // const systemUnderTest = path.join(__dirname, '..', 'src', 'main.ts')
+  const options: sut.ExecSyncOptions = {
+    env: process.env,
+    stdio: [process.stdin, process.stdout, process.stderr]
+  }
+
+  sut.execSync(`node ${systemUnderTest}`, options)
+
+  var expectedFileDownloadPath = path.join(
+    pathToTempDirForThisRun,
+    expectedOutputFilename
+  )
+
+  console.log(`verifying file was downloaded to ${expectedFileDownloadPath}...`)
+
+  var fileExists = fs.existsSync(expectedFileDownloadPath)
+  expect(fileExists).toBe(true)
+
+  console.log(`file was downloaded to ${expectedFileDownloadPath}...`)
+})
