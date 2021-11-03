@@ -40,6 +40,7 @@ async function run(): Promise<void> {
     const repositoryOwner = getInputValue('repository_owner')
     const repositoryName = getInputValue('repository_name')
     const workflowName = getInputValue('workflow_name')
+    const artifactName = getInputValue('artifact_name')
     const runId = getInputValue('run_id')
     const downloadPath = getInputValue('download_path')
     const downloadFilename = getInputValue('download_filename')
@@ -60,7 +61,11 @@ async function run(): Promise<void> {
       workflow,
       runId
     )
-    const artifact = await getArtifactForWorkflowRun(githubClient, workflowRun)
+    const artifact = await getArtifactForWorkflowRun(
+      githubClient,
+      workflowRun,
+      artifactName
+    )
 
     writeDebug('finished calling APIs')
 
@@ -147,7 +152,8 @@ async function downloadFile(
 
 async function getArtifactForWorkflowRun(
   client: AxiosInstance,
-  forWorkflowRun: WorkflowRun
+  forWorkflowRun: WorkflowRun,
+  artifactName: string
 ): Promise<Artifact> {
   if (forWorkflowRun === null) {
     core.setFailed('getArtifactForWorkflowRun was passed a null workflow run')
@@ -174,7 +180,22 @@ async function getArtifactForWorkflowRun(
     core.setFailed(`No artifacts for workflow run ${forWorkflowRun.id}.`)
     return null
   } else {
-    const match = response.data.artifacts[0]
+    const matches = response.data.artifacts.filter(function (item) {
+      if (item.name.toLowerCase() === artifactName.toLowerCase()) {
+        return true
+      } else {
+        return false
+      }
+    })
+
+    if (!matches || matches.length === 0) {
+      core.setFailed(
+        `No artifact named ${artifactName} found in workflow run ${forWorkflowRun.id}.`
+      )
+      return null
+    }
+
+    const match = matches[0]
 
     writeDebug(`Found workflow run artifact id ${match.id}.`)
 

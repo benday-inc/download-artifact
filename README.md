@@ -20,6 +20,7 @@ To download an artifact from a workflow:
      token: ${{ secrets.TOKEN_WITH_PERMISSIONS }}'
      repository_owner: 'benday'
      repository_name: 'actionsdemo'
+     artifact_name: 'build-output'
      workflow_name: 'my-workflow'
      run_id: '4321235'
      download_path: '${{ github.workspace }}/temp'
@@ -37,6 +38,7 @@ To download an artifact from a workflow:
 - `repository_owner` - name of the repository account owner
 - `repository_name` - name of the repository
 - `workflow_name` - name of the workflow that created the artifact
+- `artifact_name` - name of artifact to download
 - `run_id` - id of the pipeline run that you want to download an artifact from
 - `download_path` - location on the agent to download the artifact to.
 - `download_filename` - download the artifact file as this filename

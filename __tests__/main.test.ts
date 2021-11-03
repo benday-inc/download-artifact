@@ -123,11 +123,11 @@ test('download build-output-api-project artifact from a run id', () => {
 
   console.log(`verifying file was downloaded to ${expectedFileDownloadPath}...`)
 
+  assertFileExistsInZip(expectedFileDownloadPath, 'Benday.Demo123.Api.dll')
   assertFileDoesNotExistInZip(
     expectedFileDownloadPath,
-    'Benday.Demo123.Api.dll'
+    'Benday.Demo123.WebUi.dll'
   )
-  assertFileExistsInZip(expectedFileDownloadPath, 'Benday.Demo123.WebUi.dll')
 })
 
 function assertFileExistsInZip(
@@ -152,6 +152,12 @@ function assertFileExistsInZip(
       foundIt = true
       break
     }
+  }
+
+  if (foundIt === false) {
+    console.log(
+      `Expected file named ${expectedFileInZip} in zip ${expectedFileDownloadPath}`
+    )
   }
 
   expect(foundIt).toBe(true)
@@ -179,6 +185,12 @@ function assertFileDoesNotExistInZip(
       foundIt = true
       break
     }
+  }
+
+  if (foundIt === true) {
+    console.log(
+      `Should not find a file named ${expectedFileInZip} in zip ${expectedFileDownloadPath}`
+    )
   }
 
   expect(foundIt).toBe(false)

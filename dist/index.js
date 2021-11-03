@@ -748,6 +748,7 @@ function run() {
             const repositoryOwner = getInputValue('repository_owner');
             const repositoryName = getInputValue('repository_name');
             const workflowName = getInputValue('workflow_name');
+            const artifactName = getInputValue('artifact_name');
             const runId = getInputValue('run_id');
             const downloadPath = getInputValue('download_path');
             const downloadFilename = getInputValue('download_filename');
@@ -759,7 +760,7 @@ function run() {
                 writeDebug('workflow instance is null');
             }
             const workflowRun = yield getWorkflowRunByRunId(githubClient, workflow, runId);
-            const artifact = yield getArtifactForWorkflowRun(githubClient, workflowRun);
+            const artifact = yield getArtifactForWorkflowRun(githubClient, workflowRun, artifactName);
             writeDebug('finished calling APIs');
             if (!artifact) {
                 core.setFailed('Artifact result was null');
@@ -827,7 +828,7 @@ function downloadFile(client, forArtifact, toDirectory, toFilename) {
         }
     });
 }
-function getArtifactForWorkflowRun(client, forWorkflowRun) {
+function getArtifactForWorkflowRun(client, forWorkflowRun, artifactName) {
     return __awaiter(this, void 0, void 0, function* () {
         if (forWorkflowRun === null) {
             core.setFailed('getArtifactForWorkflowRun was passed a null workflow run');
@@ -847,7 +848,19 @@ function getArtifactForWorkflowRun(client, forWorkflowRun) {
             return null;
         }
         else {
-            const match = response.data.artifacts[0];
+            const matches = response.data.artifacts.filter(function (item) {
+                if (item.name.toLowerCase() === artifactName.toLowerCase()) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            });
+            if (!matches || matches.length === 0) {
+                core.setFailed(`No artifact named ${artifactName} found in workflow run ${forWorkflowRun.id}.`);
+                return null;
+            }
+            const match = matches[0];
             writeDebug(`Found workflow run artifact id ${match.id}.`);
             return match;
         }
