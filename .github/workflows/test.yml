@@ -37,9 +37,7 @@ jobs:
         run: ls -lR
         working-directory: '${{ github.workspace }}'
       - uses: ./
-        description: 'download actions demo build-output artifact from a run'
         with:
-          # token: '${{ github.token }}'
           token: '${{ secrets.PAT_WITH_GOOD_PERMISSIONS }}'
           repository_owner: 'benday'
           repository_name: 'actionsdemo'
@@ -50,9 +48,7 @@ jobs:
           download_filename: 'actionsdemo.zip'
 
       - uses: ./
-        description: 'download actions demo build-output-api-project artifact from a run'
         with:
-          # token: '${{ github.token }}'
           token: '${{ secrets.PAT_WITH_GOOD_PERMISSIONS }}'
           repository_owner: 'benday'
           repository_name: 'actionsdemo'
