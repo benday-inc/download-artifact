@@ -18,6 +18,10 @@ inputs:
     required: true
     description: 'name of the workflow (aka. build) that created the artifact'
     default: ''
+  artifact_name:
+    required: true
+    description: 'name of the artifact to download'
+    default: ''
   run_id:
     required: true
     description: 'the run id value that you want to download the artifact from'

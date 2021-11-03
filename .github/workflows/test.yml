@@ -37,15 +37,33 @@ jobs:
         run: ls -lR
         working-directory: '${{ github.workspace }}'
       - uses: ./
+        description: 'download actions demo build-output artifact from a run'
         with:
           # token: '${{ github.token }}'
           token: '${{ secrets.PAT_WITH_GOOD_PERMISSIONS }}'
           repository_owner: 'benday'
           repository_name: 'actionsdemo'
+          artifact_name: 'build-output'
           workflow_name: 'build'
           run_id: '1372864030'
           download_path: '${{ github.workspace }}/temp'
           download_filename: 'actionsdemo.zip'
+
+      - uses: ./
+        description: 'download actions demo build-output-api-project artifact from a run'
+        with:
+          # token: '${{ github.token }}'
+          token: '${{ secrets.PAT_WITH_GOOD_PERMISSIONS }}'
+          repository_owner: 'benday'
+          repository_name: 'actionsdemo'
+          artifact_name: 'build-output-api-project'
+          workflow_name: 'build'
+          run_id: '13728641417378960030'
+          download_path: '${{ github.workspace }}/temp'
+          download_filename: 'actionsdemo-build-output-api-project.zip'
+
+
+
   automerge:
     name: Merge pull request
     runs-on: [ubuntu-latest]
