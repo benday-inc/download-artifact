@@ -2,6 +2,7 @@ import * as sut from 'child_process'
 import * as path from 'path'
 import * as fs from 'fs'
 import * as os from 'os'
+import AdmZip, * as zip from 'adm-zip'
 
 // shows how the runner will run a javascript action with env / stdout protocol
 
@@ -63,6 +64,9 @@ test('download build-output artifact from a run id', () => {
   expect(fileExists).toBe(true)
 
   console.log(`file was downloaded to ${expectedFileDownloadPath}...`)
+
+  assertFileExistsInZip(expectedFileDownloadPath, 'Benday.Demo123.Api.dll')
+  assertFileExistsInZip(expectedFileDownloadPath, 'Benday.Demo123.WebUi.dll')
 })
 
 test('download build-output-api-project artifact from a run id', () => {
@@ -119,8 +123,63 @@ test('download build-output-api-project artifact from a run id', () => {
 
   console.log(`verifying file was downloaded to ${expectedFileDownloadPath}...`)
 
+  assertFileDoesNotExistInZip(
+    expectedFileDownloadPath,
+    'Benday.Demo123.Api.dll'
+  )
+  assertFileExistsInZip(expectedFileDownloadPath, 'Benday.Demo123.WebUi.dll')
+})
+
+function assertFileExistsInZip(
+  expectedFileDownloadPath: string,
+  expectedFileInZip: string
+) {
   var fileExists = fs.existsSync(expectedFileDownloadPath)
   expect(fileExists).toBe(true)
 
   console.log(`file was downloaded to ${expectedFileDownloadPath}...`)
-})
+
+  var actualFile = new AdmZip(expectedFileDownloadPath)
+
+  var foundIt = false
+
+  var entries = actualFile.getEntries()
+
+  for (var entry of entries) {
+    const entryName = entry.entryName
+
+    if (entryName.endsWith(expectedFileInZip) === true) {
+      foundIt = true
+      break
+    }
+  }
+
+  expect(foundIt).toBe(true)
+}
+
+function assertFileDoesNotExistInZip(
+  expectedFileDownloadPath: string,
+  expectedFileInZip: string
+) {
+  var fileExists = fs.existsSync(expectedFileDownloadPath)
+  expect(fileExists).toBe(true)
+
+  console.log(`file was downloaded to ${expectedFileDownloadPath}...`)
+
+  var actualFile = new AdmZip(expectedFileDownloadPath)
+
+  var foundIt = false
+
+  var entries = actualFile.getEntries()
+
+  for (var entry of entries) {
+    const entryName = entry.entryName
+
+    if (entryName.endsWith(expectedFileInZip) === true) {
+      foundIt = true
+      break
+    }
+  }
+
+  expect(foundIt).toBe(false)
+}
