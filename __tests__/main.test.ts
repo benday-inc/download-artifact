@@ -1,4 +1,4 @@
-import * as sut from 'child_process'
+import {ExecSyncOptions, execSync} from 'child_process'
 import * as path from 'path'
 import * as fs from 'fs'
 import * as os from 'os'
@@ -46,12 +46,12 @@ test('download build-output artifact from a run id', () => {
 
   const systemUnderTest = path.join(__dirname, '..', 'lib', 'main.js')
   // const systemUnderTest = path.join(__dirname, '..', 'src', 'main.ts')
-  const options: sut.ExecSyncOptions = {
+  const options: ExecSyncOptions = {
     env: process.env,
     stdio: [process.stdin, process.stdout, process.stderr]
   }
 
-  sut.execSync(`node ${systemUnderTest}`, options)
+  execSync(`node ${systemUnderTest}`, options)
 
   var expectedFileDownloadPath = path.join(
     pathToTempDirForThisRun,
@@ -109,12 +109,12 @@ test('download build-output-api-project artifact from a run id', () => {
 
   const systemUnderTest = path.join(__dirname, '..', 'lib', 'main.js')
   // const systemUnderTest = path.join(__dirname, '..', 'src', 'main.ts')
-  const options: sut.ExecSyncOptions = {
+  const options: ExecSyncOptions = {
     env: process.env,
     stdio: [process.stdin, process.stdout, process.stderr]
   }
 
-  sut.execSync(`node ${systemUnderTest}`, options)
+  execSync(`node ${systemUnderTest}`, options)
 
   var expectedFileDownloadPath = path.join(
     pathToTempDirForThisRun,
