@@ -37,7 +37,7 @@ test('download build-output artifact from a run id', () => {
   process.env['INPUT_REPOSITORY_NAME'] = 'actionsdemo'
   process.env['INPUT_ARTIFACT_NAME'] = 'build-output'
   process.env['INPUT_WORKFLOW_NAME'] = 'build'
-  process.env['INPUT_RUN_ID'] = '1417378960'
+  process.env['INPUT_RUN_ID'] = '3290412551'
   process.env['INPUT_DOWNLOAD_PATH'] = pathToTempDirForThisRun
   process.env['INPUT_DOWNLOAD_FILENAME'] = expectedOutputFilename
 
@@ -100,7 +100,7 @@ test('download build-output-api-project artifact from a run id', () => {
   process.env['INPUT_REPOSITORY_NAME'] = 'actionsdemo'
   process.env['INPUT_ARTIFACT_NAME'] = 'build-output-api-project'
   process.env['INPUT_WORKFLOW_NAME'] = 'build'
-  process.env['INPUT_RUN_ID'] = '1417378960'
+  process.env['INPUT_RUN_ID'] = '3290412551'
   process.env['INPUT_DOWNLOAD_PATH'] = pathToTempDirForThisRun
   process.env['INPUT_DOWNLOAD_FILENAME'] = expectedOutputFilename
 
