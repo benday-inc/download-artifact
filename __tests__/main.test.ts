@@ -1,8 +1,10 @@
-import {ExecSyncOptions, execSync} from 'child_process'
+import { ExecSyncOptions, execSync } from 'child_process'
 import * as path from 'path'
 import * as fs from 'fs'
 import * as os from 'os'
 import AdmZip, * as zip from 'adm-zip'
+
+const TEST_RUN_ID = '9269963744'
 
 // shows how the runner will run a javascript action with env / stdout protocol
 
@@ -37,7 +39,7 @@ test('download build-output artifact from a run id', () => {
   process.env['INPUT_REPOSITORY_NAME'] = 'actionsdemo'
   process.env['INPUT_ARTIFACT_NAME'] = 'build-output'
   process.env['INPUT_WORKFLOW_NAME'] = 'build'
-  process.env['INPUT_RUN_ID'] = '3290412551'
+  process.env['INPUT_RUN_ID'] = TEST_RUN_ID
   process.env['INPUT_DOWNLOAD_PATH'] = pathToTempDirForThisRun
   process.env['INPUT_DOWNLOAD_FILENAME'] = expectedOutputFilename
 
@@ -68,6 +70,8 @@ test('download build-output artifact from a run id', () => {
   assertFileExistsInZip(expectedFileDownloadPath, 'Benday.Demo123.Api.dll')
   assertFileExistsInZip(expectedFileDownloadPath, 'Benday.Demo123.WebUi.dll')
 })
+
+
 
 test('download build-output-api-project artifact from a run id', () => {
   const now = Date.now().toString()
@@ -100,7 +104,7 @@ test('download build-output-api-project artifact from a run id', () => {
   process.env['INPUT_REPOSITORY_NAME'] = 'actionsdemo'
   process.env['INPUT_ARTIFACT_NAME'] = 'build-output-api-project'
   process.env['INPUT_WORKFLOW_NAME'] = 'build'
-  process.env['INPUT_RUN_ID'] = '3290412551'
+  process.env['INPUT_RUN_ID'] = TEST_RUN_ID
   process.env['INPUT_DOWNLOAD_PATH'] = pathToTempDirForThisRun
   process.env['INPUT_DOWNLOAD_FILENAME'] = expectedOutputFilename
 
