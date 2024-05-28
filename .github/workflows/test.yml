@@ -12,6 +12,7 @@ env:
   ACTIONS_RUNNER_DEBUG: true
   MYGITHUBTOKEN: '${{ secrets.PAT_WITH_GOOD_PERMISSIONS }}'  
   DEBUG: 'axios'
+  RUN_ID: '3290412551'
 
 jobs:
   build: # make sure build/ci work properly
@@ -43,7 +44,7 @@ jobs:
           repository_name: 'actionsdemo'
           artifact_name: 'build-output'
           workflow_name: 'build'
-          run_id: '3290412551'
+          run_id: '${{ env.RUN_ID }}'
           download_path: '${{ github.workspace }}/temp'
           download_filename: 'actionsdemo.zip'
 
@@ -54,7 +55,7 @@ jobs:
           repository_name: 'actionsdemo'
           artifact_name: 'build-output-api-project'
           workflow_name: 'build'
-          run_id: '3290412551'
+          run_id: '${{ env.RUN_ID }}'
           download_path: '${{ github.workspace }}/temp'
           download_filename: 'actionsdemo-build-output-api-project.zip'
 
