@@ -5,7 +5,9 @@
       "Bash(npm outdated *)",
       "Bash(npm run *)",
       "Bash(npm test *)",
-      "Bash(npm view *)"
+      "Bash(npm view *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }
