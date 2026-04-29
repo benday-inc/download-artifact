@@ -13457,189 +13457,179 @@ function getInputValue(key) {
         }
     }
 }
-function run() {
-    return tslib_1.__awaiter(this, void 0, void 0, function* () {
-        try {
-            // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
-            writeDebug(`Starting...`);
-            writeDebug(`Reading inputs...`);
-            const repositoryOwner = getInputValue('repository_owner');
-            const repositoryName = getInputValue('repository_name');
-            const workflowName = getInputValue('workflow_name');
-            const artifactName = getInputValue('artifact_name');
-            const runId = getInputValue('run_id');
-            const downloadPath = getInputValue('download_path');
-            const downloadFilename = getInputValue('download_filename');
-            const token = getInputValue('token');
-            writeDebug('setting up api call');
-            const githubClient = getClient(token, repositoryOwner, repositoryName);
-            const workflow = yield getWorkflowByName(githubClient, workflowName);
-            if (!workflow || workflow === null) {
-                writeDebug('workflow instance is null');
-            }
-            const workflowRun = yield getWorkflowRunByRunId(githubClient, workflow, runId);
-            const artifact = yield getArtifactForWorkflowRun(githubClient, workflowRun, artifactName);
-            writeDebug('finished calling APIs');
-            if (!artifact) {
-                core.setFailed('Artifact result was null');
-            }
-            else {
-                writeDebug(`Found artifact at ${artifact.url}`);
-                writeDebug(`Downloading artifact from ${artifact.archive_download_url}`);
-                yield downloadFile(githubClient, artifact, downloadPath, downloadFilename);
-            }
+async function run() {
+    try {
+        // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
+        writeDebug(`Starting...`);
+        writeDebug(`Reading inputs...`);
+        const repositoryOwner = getInputValue('repository_owner');
+        const repositoryName = getInputValue('repository_name');
+        const workflowName = getInputValue('workflow_name');
+        const artifactName = getInputValue('artifact_name');
+        const runId = getInputValue('run_id');
+        const downloadPath = getInputValue('download_path');
+        const downloadFilename = getInputValue('download_filename');
+        const token = getInputValue('token');
+        writeDebug('setting up api call');
+        const githubClient = getClient(token, repositoryOwner, repositoryName);
+        const workflow = await getWorkflowByName(githubClient, workflowName);
+        if (!workflow || workflow === null) {
+            writeDebug('workflow instance is null');
         }
-        catch (error) {
-            if (error instanceof Error) {
-                const err = error;
-                core.error(err);
-                core.setFailed(err);
-            }
-            else {
-                core.error('Someting went wrong.');
-                core.error(JSON.stringify(error));
-                core.error(JSON.stringify(error));
-                core.setFailed(JSON.stringify(error));
-            }
+        const workflowRun = await getWorkflowRunByRunId(githubClient, workflow, runId);
+        const artifact = await getArtifactForWorkflowRun(githubClient, workflowRun, artifactName);
+        writeDebug('finished calling APIs');
+        if (!artifact) {
+            core.setFailed('Artifact result was null');
         }
-    });
+        else {
+            writeDebug(`Found artifact at ${artifact.url}`);
+            writeDebug(`Downloading artifact from ${artifact.archive_download_url}`);
+            await downloadFile(githubClient, artifact, downloadPath, downloadFilename);
+        }
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            const err = error;
+            core.error(err);
+            core.setFailed(err);
+        }
+        else {
+            core.error('Someting went wrong.');
+            core.error(JSON.stringify(error));
+            core.error(JSON.stringify(error));
+            core.setFailed(JSON.stringify(error));
+        }
+    }
 }
 run();
-function downloadFile(client, forArtifact, toDirectory, toFilename) {
-    return tslib_1.__awaiter(this, void 0, void 0, function* () {
-        if (forArtifact === null) {
-            core.setFailed('downloadFile was passed a null artifact');
-            throw new Error('downloadFile was passed a null artifact');
-        }
-        if (!toFilename || toFilename === null || toFilename === '') {
-            core.setFailed('downloadFile was passed a null workflowName');
-            throw new Error('downloadFile was passed a null workflowName');
-        }
-        const toFilePath = path_1.default.join(toDirectory, `${toFilename}`);
-        writeDebug(`downloadFile(): Downloading ${forArtifact.archive_download_url} to ${toDirectory} as ${toFilePath}`);
-        if (!fs.existsSync(toDirectory)) {
-            fs.mkdirSync(toDirectory);
-        }
-        try {
-            const writer = fs.createWriteStream(toFilePath);
-            writeDebug('downloadFile(): before call to await get');
-            const response = yield client.get(forArtifact.archive_download_url, {
-                responseType: 'stream'
-            });
-            writeDebug('downloadFile(): after call to await get');
-            if (response) {
-                writeDebug(response.status.toString());
-                writeDebug(response.statusText);
-            }
-            response.data.pipe(writer);
-            return new Promise((resolve, reject) => {
-                writer.on('finish', resolve);
-                writer.on('error', reject);
-            });
-        }
-        catch (err) {
-            writeDebug('downloadFile(): encountered an error');
-            writeDebug(typeof err);
-            writeDebug(JSON.stringify(err));
-            core.error(JSON.stringify(err));
-            core.setFailed(JSON.stringify(err));
-        }
-    });
-}
-function getArtifactForWorkflowRun(client, forWorkflowRun, artifactName) {
-    return tslib_1.__awaiter(this, void 0, void 0, function* () {
-        if (forWorkflowRun === null) {
-            core.setFailed('getArtifactForWorkflowRun was passed a null workflow run');
-            throw new Error('getArtifactForWorkflowRun was passed a null workflow run');
-        }
-        writeDebug(`Getting artifacts for workflow run ${forWorkflowRun.id}...`);
-        writeDebug(`Getting artifacts for workflow run url ${forWorkflowRun.artifacts_url}...`);
-        const url = forWorkflowRun.artifacts_url;
-        const temp = client.get(url);
-        const response = yield temp;
-        if (!response || response === null || response.data === null) {
-            core.setFailed('Call to get artifacts for workflow run failed with undefined or null result');
-            return null;
-        }
-        else if (response.data.total_count === 0) {
-            core.setFailed(`No artifacts for workflow run ${forWorkflowRun.id}.`);
-            return null;
-        }
-        else {
-            const matches = response.data.artifacts.filter(function (item) {
-                if (item.name.toLowerCase() === artifactName.toLowerCase()) {
-                    return true;
-                }
-                else {
-                    return false;
-                }
-            });
-            if (!matches || matches.length === 0) {
-                core.setFailed(`No artifact named ${artifactName} found in workflow run ${forWorkflowRun.id}.`);
-                return null;
-            }
-            const match = matches[0];
-            writeDebug(`Found workflow run artifact id ${match.id}.`);
-            return match;
-        }
-    });
-}
-function getWorkflowRunByRunId(client, forWorkflow, runId) {
-    return tslib_1.__awaiter(this, void 0, void 0, function* () {
-        if (!forWorkflow || forWorkflow === null) {
-            core.setFailed('getWorkflowRunByRunId was passed a null workflow');
-            throw new Error('getWorkflowRunByRunId was passed a null workflow');
-        }
-        writeDebug(`Getting run for workflow ${forWorkflow.name} and run id ${runId}...`);
-        const url = `actions/runs/${runId}`;
-        writeDebug(`getWorkflowRunByRunId(): calling url ${url}`);
-        const temp = client.get(url, {
-            params: { status: 'success' }
+async function downloadFile(client, forArtifact, toDirectory, toFilename) {
+    if (forArtifact === null) {
+        core.setFailed('downloadFile was passed a null artifact');
+        throw new Error('downloadFile was passed a null artifact');
+    }
+    if (!toFilename || toFilename === null || toFilename === '') {
+        core.setFailed('downloadFile was passed a null workflowName');
+        throw new Error('downloadFile was passed a null workflowName');
+    }
+    const toFilePath = path_1.default.join(toDirectory, `${toFilename}`);
+    writeDebug(`downloadFile(): Downloading ${forArtifact.archive_download_url} to ${toDirectory} as ${toFilePath}`);
+    if (!fs.existsSync(toDirectory)) {
+        fs.mkdirSync(toDirectory);
+    }
+    try {
+        const writer = fs.createWriteStream(toFilePath);
+        writeDebug('downloadFile(): before call to await get');
+        const response = await client.get(forArtifact.archive_download_url, {
+            responseType: 'stream'
         });
-        const response = yield temp;
-        if (!response || response === null || response.data === null) {
-            core.setFailed(`Call to get workflow run id ${runId} failed with undefined or null result`);
+        writeDebug('downloadFile(): after call to await get');
+        if (response) {
+            writeDebug(response.status.toString());
+            writeDebug(response.statusText);
+        }
+        response.data.pipe(writer);
+        return new Promise((resolve, reject) => {
+            writer.on('finish', resolve);
+            writer.on('error', reject);
+        });
+    }
+    catch (err) {
+        writeDebug('downloadFile(): encountered an error');
+        writeDebug(typeof err);
+        writeDebug(JSON.stringify(err));
+        core.error(JSON.stringify(err));
+        core.setFailed(JSON.stringify(err));
+    }
+}
+async function getArtifactForWorkflowRun(client, forWorkflowRun, artifactName) {
+    if (forWorkflowRun === null) {
+        core.setFailed('getArtifactForWorkflowRun was passed a null workflow run');
+        throw new Error('getArtifactForWorkflowRun was passed a null workflow run');
+    }
+    writeDebug(`Getting artifacts for workflow run ${forWorkflowRun.id}...`);
+    writeDebug(`Getting artifacts for workflow run url ${forWorkflowRun.artifacts_url}...`);
+    const url = forWorkflowRun.artifacts_url;
+    const temp = client.get(url);
+    const response = await temp;
+    if (!response || response === null || response.data === null) {
+        core.setFailed('Call to get artifacts for workflow run failed with undefined or null result');
+        return null;
+    }
+    else if (response.data.total_count === 0) {
+        core.setFailed(`No artifacts for workflow run ${forWorkflowRun.id}.`);
+        return null;
+    }
+    else {
+        const matches = response.data.artifacts.filter(function (item) {
+            if (item.name.toLowerCase() === artifactName.toLowerCase()) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        });
+        if (!matches || matches.length === 0) {
+            core.setFailed(`No artifact named ${artifactName} found in workflow run ${forWorkflowRun.id}.`);
+            return null;
+        }
+        const match = matches[0];
+        writeDebug(`Found workflow run artifact id ${match.id}.`);
+        return match;
+    }
+}
+async function getWorkflowRunByRunId(client, forWorkflow, runId) {
+    if (!forWorkflow || forWorkflow === null) {
+        core.setFailed('getWorkflowRunByRunId was passed a null workflow');
+        throw new Error('getWorkflowRunByRunId was passed a null workflow');
+    }
+    writeDebug(`Getting run for workflow ${forWorkflow.name} and run id ${runId}...`);
+    const url = `actions/runs/${runId}`;
+    writeDebug(`getWorkflowRunByRunId(): calling url ${url}`);
+    const temp = client.get(url, {
+        params: { status: 'success' }
+    });
+    const response = await temp;
+    if (!response || response === null || response.data === null) {
+        core.setFailed(`Call to get workflow run id ${runId} failed with undefined or null result`);
+        return null;
+    }
+    else {
+        const match = response.data;
+        writeDebug(`Found workflow run id ${match.id}.`);
+        if (match.workflow_id !== forWorkflow.id) {
+            core.setFailed(`Found workflow run id ${runId} but it does not belong to workflow ${forWorkflow.name}. Run workflow id is ${match.workflow_id}. Expected workflow id ${forWorkflow.id}.`);
             return null;
         }
         else {
-            const match = response.data;
-            writeDebug(`Found workflow run id ${match.id}.`);
-            if (match.workflow_id !== forWorkflow.id) {
-                core.setFailed(`Found workflow run id ${runId} but it does not belong to workflow ${forWorkflow.name}. Run workflow id is ${match.workflow_id}. Expected workflow id ${forWorkflow.id}.`);
-                return null;
-            }
-            else {
-                writeDebug(`Workflow run matches expected parent workflow id.`);
-            }
+            writeDebug(`Workflow run matches expected parent workflow id.`);
+        }
+        return match;
+    }
+}
+async function getWorkflowByName(client, workflowName) {
+    writeDebug(`Getting workflow by name for ${workflowName}...`);
+    const temp = client.get(`actions/workflows`);
+    const response = await temp;
+    if (!response || response === null || response.data === null) {
+        core.setFailed('Call to get workflow by name failed with undefined or null result');
+        return null;
+    }
+    else if (response.data.total_count === 0) {
+        core.setFailed(`No workflows found`);
+        return null;
+    }
+    else {
+        const match = response.data.workflows.find(w => w.name === workflowName);
+        if (!match || match === null) {
+            core.setFailed(`Could not find workflow by name for ${workflowName}.`);
+            return null;
+        }
+        else {
+            writeDebug(`Found workflow by name for ${workflowName}.`);
             return match;
         }
-    });
-}
-function getWorkflowByName(client, workflowName) {
-    return tslib_1.__awaiter(this, void 0, void 0, function* () {
-        writeDebug(`Getting workflow by name for ${workflowName}...`);
-        const temp = client.get(`actions/workflows`);
-        const response = yield temp;
-        if (!response || response === null || response.data === null) {
-            core.setFailed('Call to get workflow by name failed with undefined or null result');
-            return null;
-        }
-        else if (response.data.total_count === 0) {
-            core.setFailed(`No workflows found`);
-            return null;
-        }
-        else {
-            const match = response.data.workflows.find(w => w.name === workflowName);
-            if (!match || match === null) {
-                core.setFailed(`Could not find workflow by name for ${workflowName}.`);
-                return null;
-            }
-            else {
-                writeDebug(`Found workflow by name for ${workflowName}.`);
-                return match;
-            }
-        }
-    });
+    }
 }
 function getClient(token, repositoryOwner, repositoryName) {
     if (!token || token === null || token === '') {
