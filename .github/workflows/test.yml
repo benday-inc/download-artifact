@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: print environment vars
         run: env
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - run: |
           npm install
       - name: npm run all
@@ -33,7 +33,7 @@ jobs:
     steps:
       - name: print environment vars
         run: env
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: run an ls -l
         run: ls -lR
         working-directory: '${{ github.workspace }}'
@@ -68,7 +68,7 @@ jobs:
     if: github.base_ref == 'main' && github.actor == 'dependabot[bot]'
     steps:
       - name: Merge
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             github.rest.pulls.merge({
