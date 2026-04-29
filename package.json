@@ -1,6 +1,6 @@
 {
   "name": "download-artifact",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "private": true,
   "description": "Download an artifact from a GitHub workflow run",
   "main": "lib/main.js",
